@@ -1,0 +1,79 @@
+{
+  "editor.tabSize": 2,
+  "editor.insertSpaces": true,
+  "editor.detectIndentation": false,
+  "editor.formatOnSave": true,
+  "editor.formatOnPaste": true,
+  "editor.wordWrap": "on",
+  "[javascript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[javascriptreact]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[json]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "editor.renderWhitespace": "boundary",
+  "files.exclude": {
+    ".*": false,
+    "ios/": false,
+    "*.lo*": false,
+    "LICENSE": false,
+    "android/": false,
+    "__tests__": false,
+    "node_modules/": false
+  },
+  "editor.multiCursorModifier": "ctrlCmd",
+  "editor.snippetSuggestions": "top",
+  "editor.suggestSelection": "first",
+  "javascript.validate.enable": false,
+  "eslint.run": "onType",
+  "eslint.format.enable": true,
+  "eslint.validate": [
+    "javascript",
+    "html",
+    "scss",
+    "css",
+    "javascriptreact",
+    "jsx"
+  ],
+  "eslint.options": {
+    "extensions": [".js", ".jsx", ".ts", "tsx", ".html", ".scss", ".css"]
+  },
+  "window.title": "${dirty}${activeEditorMedium}${separator}${rootName}",
+  "gitlens.keymap": "alternate",
+  "breadcrumbs.enabled": true,
+  "editor.fontSize": 16,
+  "editor.cursorStyle": "line",
+  "editor.cursorWidth": 2,
+  "editor.lineHeight": 22,
+  "workbench.sideBar.location": "left",
+  "workbench.panel.defaultLocation": "bottom",
+  "git.autofetch": true,
+  "gitlens.currentLine.enabled": true,
+  "files.trimTrailingWhitespace": true,
+  "files.insertFinalNewline": true,
+  "prettier.singleQuote": true,
+  "prettier.trailingComma": "es5",
+  "explorer.confirmDelete": false,
+  "terminal.integrated.fontSize": 14,
+  "terminal.integrated.cursorBlinking": true,
+  "editor.minimap.enabled": false,
+  "editor.parameterHints.enabled": true,
+  "workbench.statusBar.visible": true,
+  "window.zoomLevel": 0,
+  "editor.quickSuggestions": {
+    "other": true,
+    "comments": false,
+    "strings": true
+  },
+  "editor.acceptSuggestionOnEnter": "on",
+  "editor.accessibilitySupport": "off",
+  "extensions.ignoreRecommendations": true,
+  "javascript.updateImportsOnFileMove.enabled": "prompt",
+  "workbench.editor.enablePreview": false,
+  "workbench.editor.enablePreviewFromQuickOpen": false,
+  "terminal.integrated.scrollback": 10000,
+  "editor.defaultFormatter": "esbenp.prettier-vscode"
+}
