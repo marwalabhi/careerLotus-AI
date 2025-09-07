@@ -1,6 +1,14 @@
 import type { Metadata } from 'next';
-import { Geist, Geist_Mono } from 'next/font/google';
+import { Inter, Roboto } from 'next/font/google';
 import './globals.css';
+import type React from 'react';
+import { Analytics } from '@vercel/analytics/next';
+import { Suspense } from 'react';
+import './globals.css';
+import { ThemeProvider } from '@/components/theme/theme-provider';
+
+const inter = Inter({ subsets: ['latin'], variable: '--font-inter' });
+const roboto = Roboto({ subsets: ['latin'], variable: '--font-roboto' });
 
 export const metadata: Metadata = {
   title: 'careerLotus AI - Career Counselling Chat',
@@ -13,8 +21,20 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body>{children}</body>
+    <html lang="en" suppressHydrationWarning>
+      <body className={`font-sans ${inter.variable} ${roboto.variable} antialiased`}>
+        <Suspense fallback={null}>
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="light"
+            enableSystem
+            disableTransitionOnChange
+          >
+            {children}
+          </ThemeProvider>
+        </Suspense>
+        <Analytics />
+      </body>
     </html>
   );
 }

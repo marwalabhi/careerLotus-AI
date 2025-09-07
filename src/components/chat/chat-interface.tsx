@@ -1,167 +1,333 @@
 'use client';
+
+import type React from 'react';
+
 import { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-import { Separator } from '@/components/ui/separator';
-import { Send, Plus, MessageSquare, Loader2 } from 'lucide-react';
-import { cn } from '@/lib/utils';
-import { ChatMessage } from '@/types/chat';
+import { Send, Paperclip, Mic, Square, User, Sparkles } from 'lucide-react';
 
-interface ChatInterfaceProps {
-  sessionId?: string;
-  onNewSession: () => void;
+interface Message {
+  id: string;
+  content: string;
+  sender: 'user' | 'ai';
+  timestamp: Date;
+  isTyping?: boolean;
 }
 
-export function ChatInterface({ sessionId, onNewSession }: ChatInterfaceProps) {
-  const [messages, setMessages] = useState<ChatMessage[]>([]);
-  const [input, setInput] = useState('');
+interface ChatInterfaceProps {
+  sessionId: string | null;
+  onSessionCreated: (sessionId: string) => void;
+}
+
+export function ChatInterface({ sessionId, onSessionCreated }: ChatInterfaceProps) {
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [inputValue, setInputValue] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const [isRecording, setIsRecording] = useState(false);
+  const scrollAreaRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  // Mock initial messages for demo
+  useEffect(() => {
+    if (sessionId) {
+      // Load messages for existing session
+      setMessages([
+        {
+          id: '1',
+          content:
+            'Thank you for your question about "hi". As your AI career counselor, I\'m here to help guide you through your career journey. Like a lotus that blooms beautifully even in challenging conditions, your career can flourish with the right guidance and support.',
+          sender: 'ai',
+          timestamp: new Date(Date.now() - 1000 * 60 * 5),
+        },
+      ]);
+    } else {
+      // New session - show welcome message
+      setMessages([
+        {
+          id: 'welcome',
+          content:
+            "Welcome to CareerLotus AI! 🌸 I'm here to help you bloom in your career journey. Whether you're exploring new opportunities, developing skills, or navigating career transitions, I'm here to provide personalized guidance. What would you like to discuss today?",
+          sender: 'ai',
+          timestamp: new Date(),
+        },
+      ]);
+    }
+  }, [sessionId]);
 
   const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    if (scrollAreaRef.current) {
+      const scrollContainer = scrollAreaRef.current.querySelector(
+        '[data-radix-scroll-area-viewport]'
+      );
+      if (scrollContainer) {
+        scrollContainer.scrollTop = scrollContainer.scrollHeight;
+      }
+    }
   };
 
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
 
-  const handleSendMessage = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!input.trim() || isLoading) return;
+  const handleSendMessage = async () => {
+    if (!inputValue.trim() || isLoading) return;
 
-    const userMessage: ChatMessage = {
-      id: crypto.randomUUID(),
-      content: input.trim(),
-      role: 'user',
+    const userMessage: Message = {
+      id: Date.now().toString(),
+      content: inputValue,
+      sender: 'user',
       timestamp: new Date(),
-      sessionId: sessionId || 'default',
     };
 
     setMessages((prev) => [...prev, userMessage]);
-    setInput('');
+    setInputValue('');
     setIsLoading(true);
 
-    try {
-      // TODO: Integrate with tRPC API call here
-      // Simulated AI response for now
-      setTimeout(() => {
-        const aiMessage: ChatMessage = {
-          id: crypto.randomUUID(),
-          content: `Thank you for your question about "${input}". As your AI career counselor, I'm here to help guide you through your career journey. Like a lotus that blooms beautifully even in challenging conditions, your career can flourish with the right guidance and support.`,
-          role: 'assistant',
-          timestamp: new Date(),
-          sessionId: sessionId || 'default',
-        };
-        setMessages((prev) => [...prev, aiMessage]);
-        setIsLoading(false);
-      }, 1500);
-    } catch (error) {
+    // Create new session if this is the first message
+    if (!sessionId) {
+      const newSessionId = `session-${Date.now()}`;
+      onSessionCreated(newSessionId);
+    }
+
+    // Simulate AI response
+    setTimeout(() => {
+      const aiMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        content:
+          'Thank you for sharing that with me! As your AI career counselor, I understand this is an important step in your professional development. Like a lotus that grows through muddy waters to bloom beautifully, your career journey may have challenges, but with the right guidance and persistence, you can achieve remarkable growth. Let me help you navigate this path with personalized advice tailored to your unique situation.',
+        sender: 'ai',
+        timestamp: new Date(),
+      };
+      setMessages((prev) => [...prev, aiMessage]);
       setIsLoading(false);
-      console.error('Error sending message:', error);
+    }, 1500);
+  };
+
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSendMessage();
     }
   };
 
+  const toggleRecording = () => {
+    setIsRecording(!isRecording);
+    // Implement voice recording functionality
+  };
+
+  const formatTime = (date: Date) => {
+    return date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
+  };
+
   return (
-    <Card className="flex h-[600px] flex-col border-pink-200 bg-gradient-to-br from-pink-50 to-purple-50">
-      <CardHeader className="border-b border-pink-200 bg-gradient-to-r from-pink-100 to-purple-100">
-        <div className="flex items-center justify-between">
-          <CardTitle className="flex items-center gap-2 text-xl font-bold text-purple-900">
-            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-pink-400 to-purple-400">
+    <div className="from-background to-background/95 flex h-full flex-col overflow-hidden bg-gradient-to-b">
+      {/* Chat Header */}
+      <div className="border-border bg-card/50 flex flex-shrink-0 items-center justify-between border-b p-6 backdrop-blur-sm">
+        <div className="flex items-center gap-4">
+          <Avatar className="ring-primary/20 h-10 w-10 shadow-sm ring-2">
+            <AvatarImage src="/ai-counselor-avatar.jpg" />
+            <AvatarFallback className="from-primary to-accent text-primary-foreground bg-gradient-to-br">
               🪷
-            </div>
-            CareerLotus AI
-          </CardTitle>
-          <Button
-            onClick={onNewSession}
-            variant="outline"
-            size="sm"
-            className="border-pink-300 bg-pink-100 text-pink-700 hover:bg-pink-200"
-          >
-            <Plus className="mr-1 h-4 w-4" />
-            New Chat
-          </Button>
-        </div>
-      </CardHeader>
-
-      <CardContent className="flex-1 p-0">
-        <ScrollArea className="h-full p-4">
-          <div className="space-y-4">
-            {messages.length === 0 && (
-              <div className="py-8 text-center text-purple-600">
-                <div className="mb-4 text-4xl">🪷</div>
-                <h3 className="mb-2 text-lg font-semibold">Welcome to CareerLotus AI</h3>
-                <p className="text-sm text-purple-500">
-                  Like a lotus that blooms in any condition, let's help your career flourish!
-                </p>
-              </div>
-            )}
-
-            {messages.map((message) => (
-              <div
-                key={message.id}
-                className={cn(
-                  'flex w-full',
-                  message.role === 'user' ? 'justify-end' : 'justify-start'
-                )}
+            </AvatarFallback>
+          </Avatar>
+          <div>
+            <h2 className="text-foreground text-lg font-bold">CareerLotus AI</h2>
+            <div className="flex items-center gap-2">
+              <div className="h-2 w-2 animate-pulse rounded-full bg-green-500"></div>
+              <span className="text-muted-foreground text-sm">Online & Ready to Help</span>
+              <Badge
+                variant="secondary"
+                className="bg-primary/10 text-primary border-primary/20 text-xs"
               >
-                <div
-                  className={cn(
-                    'max-w-[80%] rounded-lg px-4 py-2 shadow-sm',
-                    message.role === 'user'
-                      ? 'bg-gradient-to-r from-pink-400 to-purple-400 text-white'
-                      : 'border border-pink-200 bg-white text-purple-900'
-                  )}
-                >
-                  <p className="text-sm">{message.content}</p>
-                  <p
-                    className={cn(
-                      'mt-1 text-xs',
-                      message.role === 'user' ? 'text-pink-100' : 'text-purple-400'
-                    )}
-                  >
-                    {message.timestamp.toLocaleTimeString()}
-                  </p>
-                </div>
-              </div>
-            ))}
+                <Sparkles className="mr-1 h-3 w-3" />
+                AI Powered
+              </Badge>
+            </div>
+          </div>
+        </div>
+        <Button
+          variant="outline"
+          size="sm"
+          className="bg-primary/5 border-primary/20 hover:bg-green-700 hover:text-white"
+          onClick={() => onSessionCreated(`session-${Date.now()}`)}
+        >
+          + New Chat
+        </Button>
+      </div>
 
-            {isLoading && (
-              <div className="flex justify-start">
-                <div className="rounded-lg border border-pink-200 bg-white px-4 py-2 shadow-sm">
-                  <div className="flex items-center gap-2 text-purple-600">
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                    <span className="text-sm">CareerLotus is thinking...</span>
+      {/* Messages Area */}
+      <div className="flex-1 overflow-hidden">
+        <ScrollArea ref={scrollAreaRef} className="h-full">
+          <div className="p-6">
+            <div className="mx-auto max-w-4xl space-y-6">
+              {messages.map((message) => (
+                <div
+                  key={message.id}
+                  className={`flex gap-4 ${message.sender === 'user' ? 'justify-end' : 'justify-start'}`}
+                >
+                  {message.sender === 'ai' && (
+                    <Avatar className="ring-primary/20 h-9 w-9 flex-shrink-0 shadow-sm ring-2">
+                      <AvatarImage src="/ai-counselor-avatar.jpg" />
+                      <AvatarFallback className="from-primary to-accent text-primary-foreground bg-gradient-to-br">
+                        🪷
+                      </AvatarFallback>
+                    </Avatar>
+                  )}
+
+                  <div
+                    className={`flex max-w-[75%] flex-col gap-2 ${message.sender === 'user' ? 'items-end' : 'items-start'}`}
+                  >
+                    <div
+                      className={`rounded-2xl px-5 py-4 text-sm leading-relaxed shadow-sm ${
+                        message.sender === 'user'
+                          ? 'from-primary to-primary/90 text-primary-foreground bg-gradient-to-br'
+                          : 'bg-card border-border/50 text-card-foreground border'
+                      } `}
+                    >
+                      {message.content}
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-muted-foreground px-2 text-xs">
+                        {formatTime(message.timestamp)}
+                      </span>
+                      {message.sender === 'user' && (
+                        <div className="bg-primary/20 flex h-4 w-4 items-center justify-center rounded-full">
+                          <div className="bg-primary h-2 w-2 rounded-full"></div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {message.sender === 'user' && (
+                    <Avatar className="ring-primary/20 h-9 w-9 flex-shrink-0 shadow-sm ring-2">
+                      <AvatarImage src="/placeholder-user.png" />
+                      <AvatarFallback className="bg-secondary text-secondary-foreground">
+                        <User className="h-4 w-4" />
+                      </AvatarFallback>
+                    </Avatar>
+                  )}
+                </div>
+              ))}
+
+              {isLoading && (
+                <div className="flex justify-start gap-4">
+                  <Avatar className="ring-primary/20 h-9 w-9 flex-shrink-0 shadow-sm ring-2">
+                    <AvatarImage src="/ai-counselor-avatar.jpg" />
+                    <AvatarFallback className="from-primary to-accent text-primary-foreground bg-gradient-to-br">
+                      🪷
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="bg-card border-border/50 rounded-2xl border px-5 py-4 shadow-sm">
+                    <div className="flex gap-1">
+                      <div className="bg-primary h-2 w-2 animate-bounce rounded-full"></div>
+                      <div
+                        className="bg-primary h-2 w-2 animate-bounce rounded-full"
+                        style={{ animationDelay: '0.1s' }}
+                      ></div>
+                      <div
+                        className="bg-primary h-2 w-2 animate-bounce rounded-full"
+                        style={{ animationDelay: '0.2s' }}
+                      ></div>
+                    </div>
                   </div>
                 </div>
-              </div>
-            )}
+              )}
+            </div>
           </div>
-          <div ref={messagesEndRef} />
         </ScrollArea>
-      </CardContent>
-
-      <div className="border-t border-pink-200 bg-gradient-to-r from-pink-50 to-purple-50 p-4">
-        <form onSubmit={handleSendMessage} className="flex gap-2">
-          <Input
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            placeholder="Ask about your career path..."
-            disabled={isLoading}
-            className="flex-1 border-pink-300 focus:border-pink-400 focus:ring-pink-200"
-          />
-          <Button
-            type="submit"
-            disabled={!input.trim() || isLoading}
-            className="bg-gradient-to-r from-pink-400 to-purple-400 text-white hover:from-pink-500 hover:to-purple-500"
-          >
-            <Send className="h-4 w-4" />
-          </Button>
-        </form>
       </div>
-    </Card>
+
+      {/* Input Area */}
+      <div className="border-border bg-card/30 flex-shrink-0 border-t backdrop-blur-sm">
+        <div className="mx-auto max-w-4xl">
+          {messages.length <= 1 && (
+            <div className="my-6 space-y-3">
+              <div className="flex flex-wrap justify-center gap-3">
+                <button
+                  onClick={() =>
+                    setInputValue('Can you help me organize a career development plan?')
+                  }
+                  className="bg-card hover:bg-card/80 border-border/50 text-muted-foreground hover:text-foreground rounded-full border px-4 py-2 text-sm transition-colors"
+                >
+                  Can you help me organize a career development plan?
+                </button>
+                <button
+                  onClick={() =>
+                    setInputValue('What are common mistakes people make when changing careers?')
+                  }
+                  className="bg-card hover:bg-card/80 border-border/50 text-muted-foreground hover:text-foreground rounded-full border px-4 py-2 text-sm transition-colors"
+                >
+                  What are common mistakes people make when changing careers?
+                </button>
+              </div>
+              <div className="flex flex-wrap justify-center gap-3">
+                <button
+                  onClick={() => setInputValue('How do I improve my interview skills?')}
+                  className="bg-card hover:bg-card/80 border-border/50 text-muted-foreground hover:text-foreground rounded-full border px-4 py-2 text-sm transition-colors"
+                >
+                  How do I improve my interview skills?
+                </button>
+                <button
+                  onClick={() => setInputValue('What skills should I develop for my industry?')}
+                  className="bg-card hover:bg-card/80 border-border/50 text-muted-foreground hover:text-foreground rounded-full border px-4 py-2 text-sm transition-colors"
+                >
+                  What skills should I develop for my industry?
+                </button>
+              </div>
+            </div>
+          )}
+
+          <div className="bg-card border-border/50 rounded-2xl border p-4 shadow-lg">
+            <div className="flex items-end gap-3">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="text-muted-foreground hover:text-foreground flex-shrink-0"
+              >
+                <Paperclip className="h-5 w-5" />
+              </Button>
+
+              <div className="relative flex-1">
+                <Input
+                  ref={inputRef}
+                  value={inputValue}
+                  onChange={(e) => setInputValue(e.target.value)}
+                  onKeyPress={handleKeyPress}
+                  placeholder="Ask about your career path..."
+                  className="placeholder:text-muted-foreground min-h-[44px] border-0 bg-transparent px-0 text-base focus-visible:ring-0 focus-visible:ring-offset-0"
+                  disabled={isLoading}
+                />
+              </div>
+
+              <Button
+                variant="ghost"
+                size="icon"
+                className={`flex-shrink-0 ${isRecording ? 'text-destructive' : 'text-muted-foreground hover:text-foreground'}`}
+                onClick={toggleRecording}
+              >
+                {isRecording ? <Square className="h-5 w-5" /> : <Mic className="h-5 w-5" />}
+              </Button>
+
+              <Button
+                onClick={handleSendMessage}
+                disabled={!inputValue.trim() || isLoading}
+                size="icon"
+                className="from-primary to-primary/90 hover:from-primary/90 hover:to-primary flex-shrink-0 rounded-xl bg-gradient-to-r shadow-sm"
+              >
+                <Send className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+
+          <p className="text-muted-foreground my-3 bg-[#f4bfc7] text-center text-xs">
+            🌸 CareerLotus AI • Helping you bloom in your professional journey
+          </p>
+        </div>
+      </div>
+    </div>
   );
 }

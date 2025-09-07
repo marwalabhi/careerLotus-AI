@@ -3,7 +3,7 @@
   "editor.insertSpaces": true,
   "editor.detectIndentation": false,
   "editor.formatOnSave": true,
-  "editor.formatOnPaste": true,
+  "editor.formatOnPaste": false,
   "editor.wordWrap": "on",
   "[javascript]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode"
@@ -30,14 +30,7 @@
   "javascript.validate.enable": false,
   "eslint.run": "onType",
   "eslint.format.enable": true,
-  "eslint.validate": [
-    "javascript",
-    "html",
-    "scss",
-    "css",
-    "javascriptreact",
-    "jsx"
-  ],
+  "eslint.validate": ["javascript", "html", "scss", "css", "javascriptreact", "jsx"],
   "eslint.options": {
     "extensions": [".js", ".jsx", ".ts", "tsx", ".html", ".scss", ".css"]
   },
