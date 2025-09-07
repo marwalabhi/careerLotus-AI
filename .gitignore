@@ -43,3 +43,5 @@ next-env.d.ts
 # Editor directories and files
 .vscode/_
 !.vscode/extensions.json
+
+/src/generated/prisma
