@@ -1,15 +1,10 @@
-// Core tRPC setup: context, router factory
-
 import { initTRPC } from '@trpc/server';
+import superjson from 'superjson';
 
-// Context creation (can pass request info, auth tokens, etc.)
-export const createContext = (opts: unknown) => {
-  return {};
-};
-export type Context = Awaited<typeof createContext>;
+export const createContext = async () => ({});
+const t = initTRPC.context<typeof createContext>().create({ transformer: superjson });
 
-// tRPC backend init with context
-const t = initTRPC.context<Context>().create();
-
-export const createRouter = t.router;
+export const router = t.router;
 export const publicProcedure = t.procedure;
+export type CreateContext = typeof createContext;
+export type TRPCRouter = ReturnType<typeof router>;
