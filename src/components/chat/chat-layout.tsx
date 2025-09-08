@@ -16,7 +16,7 @@ export function ChatLayout() {
   const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
 
   return (
-    <div className="flex h-screen bg-amber-400">
+    <div className="flex h-screen">
       {/* Mobile Sidebar Overlay */}
       {isSidebarOpen && (
         <div className="fixed inset-0 z-40 bg-black/50 lg:hidden" onClick={toggleSidebar} />
@@ -68,10 +68,10 @@ export function ChatLayout() {
           <div className="border-sidebar-border border-t p-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <Avatar className="h-8 w-8">
+                <Avatar className="h-9 w-9">
                   <AvatarImage src="/placeholder-user.png" />
                   <AvatarFallback className="bg-muted text-muted-foreground text-xs">
-                    <User className="h-3 w-3" />
+                    <User className="h-5 w-5" />
                   </AvatarFallback>
                 </Avatar>
                 <div className="min-w-0 flex-1">

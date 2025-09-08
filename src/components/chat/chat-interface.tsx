@@ -245,7 +245,7 @@ export function ChatInterface({ sessionId, onSessionCreated }: ChatInterfaceProp
       <div className="border-border bg-card/30 flex-shrink-0 border-t backdrop-blur-sm">
         <div className="mx-auto max-w-4xl">
           {messages.length <= 1 && (
-            <div className="my-6 space-y-3">
+            <div className="my-9 space-y-3">
               <div className="flex flex-wrap justify-center gap-3">
                 <button
                   onClick={() =>
@@ -306,7 +306,7 @@ export function ChatInterface({ sessionId, onSessionCreated }: ChatInterfaceProp
               <Button
                 variant="ghost"
                 size="icon"
-                className={`flex-shrink-0 ${isRecording ? 'text-destructive' : 'text-muted-foreground hover:text-foreground'}`}
+                className={`flex-shrink-0 cursor-pointer ${isRecording ? 'text-destructive' : 'text-muted-foreground hover:text-foreground'}`}
                 onClick={toggleRecording}
               >
                 {isRecording ? <Square className="h-5 w-5" /> : <Mic className="h-5 w-5" />}
@@ -316,14 +316,14 @@ export function ChatInterface({ sessionId, onSessionCreated }: ChatInterfaceProp
                 onClick={handleSendMessage}
                 disabled={!inputValue.trim() || isLoading}
                 size="icon"
-                className="from-primary to-primary/90 hover:from-primary/90 hover:to-primary flex-shrink-0 rounded-xl bg-gradient-to-r shadow-sm"
+                className="from-primary to-primary/90 hover:from-primary/90 hover:to-primary flex-shrink-0 cursor-pointer rounded-xl bg-gradient-to-r shadow-sm"
               >
                 <Send className="h-4 w-4" />
               </Button>
             </div>
           </div>
 
-          <p className="text-muted-foreground my-3 bg-[#f4bfc7] text-center text-xs">
+          <p className="text-muted-foreground my-3 text-center text-xs">
             🌸 CareerLotus AI • Helping you bloom in your professional journey
           </p>
         </div>

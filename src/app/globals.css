@@ -34,7 +34,7 @@
   --sidebar-foreground: oklch(0.25 0.02 160); /* Dark sidebar text */
   --sidebar-primary: oklch(0.35 0.15 160); /* Green primary in sidebar */
   --sidebar-primary-foreground: oklch(0.98 0.01 160); /* Light text on sidebar primary */
-  --sidebar-accent: oklch(0.7 0.15 320); /* Pink accent in sidebar */
+  --sidebar-accent: #d4de95; /* olive green accent in sidebar */
   --sidebar-accent-foreground: oklch(0.98 0.01 160); /* Light text on sidebar accent */
   --sidebar-border: oklch(0.92 0.01 160); /* Light sidebar borders */
   --sidebar-ring: oklch(0.35 0.15 160 / 0.3); /* Green sidebar focus ring */
