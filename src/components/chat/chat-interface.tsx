@@ -296,7 +296,7 @@ export function ChatInterface({ sessionId, onSessionCreated }: ChatInterfaceProp
                   ref={inputRef}
                   value={inputValue}
                   onChange={(e) => setInputValue(e.target.value)}
-                  onKeyPress={handleKeyPress}
+                  onKeyDown={handleKeyPress}
                   placeholder="Ask about your career path..."
                   className="placeholder:text-muted-foreground min-h-[44px] border-0 bg-transparent px-0 text-base focus-visible:ring-0 focus-visible:ring-offset-0"
                   disabled={isLoading}

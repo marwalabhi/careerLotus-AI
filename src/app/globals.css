@@ -4,7 +4,6 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
-  /* Updated color tokens to professional dark green theme inspired by Microsoft Copilot/Claude UI */
   --background: oklch(0.99 0.005 160); /* Clean white with subtle green tint */
   --foreground: oklch(0.25 0.02 160); /* Dark gray-green for main text */
   --card: oklch(0.98 0.01 160); /* Light card backgrounds */
@@ -17,8 +16,8 @@
   --secondary-foreground: oklch(0.25 0.02 160); /* Dark text on secondary */
   --muted: oklch(0.96 0.01 160); /* Muted backgrounds */
   --muted-foreground: oklch(0.45 0.02 160); /* Muted text */
-  --accent: oklch(0.7 0.15 320); /* Subtle pink accent for lotus elements */
-  --accent-foreground: oklch(0.98 0.01 160); /* Light text on accent */
+  --accent: #d8e2c5; /* Subtle pink accent for lotus elements */
+  --accent-foreground: oklch(0% 0 0); /* Light text on accent */
   --destructive: oklch(0.55 0.25 25); /* Red for destructive actions */
   --destructive-foreground: oklch(0.98 0.01 160); /* Light text on destructive */
   --border: oklch(0.92 0.01 160); /* Light borders */
@@ -54,7 +53,7 @@
   --secondary-foreground: oklch(0.95 0.005 160); /* Light secondary text */
   --muted: oklch(0.15 0.02 160); /* Dark muted */
   --muted-foreground: oklch(0.65 0.01 160); /* Medium light muted text */
-  --accent: oklch(0.75 0.15 320); /* Bright pink accent for dark mode */
+  --accent: oklch(72.675% 0.15315 234.905); /* Bright pink accent for dark mode */
   --accent-foreground: oklch(0.08 0.01 160); /* Dark text on accent */
   --destructive: oklch(0.6 0.25 25); /* Bright red for dark mode */
   --destructive-foreground: oklch(0.95 0.005 160); /* Light text on destructive */
@@ -66,11 +65,11 @@
   --chart-3: oklch(0.6 0.2 25); /* Brighter red for dark charts */
   --chart-4: oklch(0.75 0.15 320); /* Brighter pink for dark charts */
   --chart-5: oklch(0.6 0.15 280); /* Brighter purple for dark charts */
-  --sidebar: oklch(0.1 0.02 160); /* Dark sidebar */
+  --sidebar: oklch(23.37% 0.01503 157.683); /* Dark sidebar */
   --sidebar-foreground: oklch(0.95 0.005 160); /* Light sidebar text */
-  --sidebar-primary: oklch(0.45 0.15 160); /* Green sidebar primary */
+  --sidebar-primary: oklch(47.256% 0.14115 136.258); /* Green sidebar primary */
   --sidebar-primary-foreground: oklch(0.08 0.01 160); /* Dark text on sidebar primary */
-  --sidebar-accent: oklch(0.75 0.15 320); /* Pink sidebar accent */
+  --sidebar-accent: oklch(46.565% 0.02035 129.052 / 0.979); /* Pink sidebar accent */
   --sidebar-accent-foreground: oklch(0.08 0.01 160); /* Dark text on sidebar accent */
   --sidebar-border: oklch(0.2 0.02 160); /* Dark sidebar borders */
   --sidebar-ring: oklch(0.45 0.15 160 / 0.3); /* Green sidebar focus ring */

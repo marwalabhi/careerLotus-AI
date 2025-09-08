@@ -84,7 +84,7 @@ export function ChatLayout() {
                   variant="ghost"
                   size="icon"
                   onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-                  className="h-8 w-8 hover:bg-green-100 hover:text-black"
+                  className="h-8 w-8 hover:bg-blue-100 hover:text-blue-900"
                 >
                   {theme === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
                 </Button>
