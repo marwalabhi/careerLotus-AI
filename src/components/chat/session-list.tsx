@@ -1,7 +1,7 @@
 'use client';
 
 import type React from 'react';
-import { useState } from 'react';
+import { useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
@@ -12,15 +12,9 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { useChat } from '@/hooks/useChat';
 
-interface ChatSession {
-  id: string;
-  title: string;
-  lastMessage: string;
-  timestamp: string;
-  messageCount: number;
-  isActive?: boolean;
-}
+interface ChatSession {}
 
 interface SessionListProps {
   activeSessionId: string | null;
@@ -28,37 +22,8 @@ interface SessionListProps {
 }
 
 export function SessionList({ activeSessionId, onSessionSelect }: SessionListProps) {
-  // Mock data - replace with actual data fetching
-  const [sessions] = useState<ChatSession[]>([
-    {
-      id: '1',
-      title: 'Career Transition to Tech',
-      lastMessage: 'What skills should I focus on for a software engineering role?',
-      timestamp: '2 hours ago',
-      messageCount: 12,
-    },
-    {
-      id: '2',
-      title: 'Leadership Development',
-      lastMessage: 'How can I improve my management skills?',
-      timestamp: '1 day ago',
-      messageCount: 8,
-    },
-    {
-      id: '3',
-      title: 'Salary Negotiation Tips',
-      lastMessage: "What's the best approach for negotiating a raise?",
-      timestamp: '3 days ago',
-      messageCount: 15,
-    },
-    {
-      id: '4',
-      title: 'Remote Work Strategies',
-      lastMessage: 'How do I stay productive while working from home?',
-      timestamp: '1 week ago',
-      messageCount: 6,
-    },
-  ]);
+  const { sessions: rawSessions, listSessionsQuery } = useChat(null);
+  const sessions = useMemo(() => rawSessions ?? [], [rawSessions]);
 
   const handleDeleteSession = (sessionId: string, e: React.MouseEvent) => {
     e.stopPropagation();
@@ -79,11 +44,15 @@ export function SessionList({ activeSessionId, onSessionSelect }: SessionListPro
           🪷 Chat Sessions
         </h2>
         <Badge variant="secondary" className="bg-primary/10 text-primary border-primary/20 text-xs">
-          {sessions.length}
+          {sessions?.length ?? 0}
         </Badge>
       </div>
 
-      {sessions.length === 0 ? (
+      {listSessionsQuery.isLoading ? (
+        <div className="px-4 py-8 text-center">
+          <p className="text-muted-foreground text-sm">Loading sessions…</p>
+        </div>
+      ) : sessions.length === 0 ? (
         // Updated empty state with lotus theme
         <div className="px-4 py-8 text-center">
           <div className="bg-primary/10 mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full">
@@ -95,10 +64,10 @@ export function SessionList({ activeSessionId, onSessionSelect }: SessionListPro
       ) : (
         <ScrollArea className="h-[calc(100vh-280px)]">
           <div className="space-y-2">
-            {sessions.map((session) => (
+            {sessions.map((session: any) => (
               <div
                 key={session.id}
-                className={`group relative cursor-pointer rounded-xl border p-4 transition-all duration-200 ${
+                className={`group relative w-full cursor-pointer rounded-xl border p-4 transition-all duration-200 sm:w-[230px] md:w-[275px] ${
                   activeSessionId === session.id
                     ? 'bg-primary/10 border-primary/20 shadow-sm'
                     : 'hover:bg-sidebar-accent/30 hover:border-border/50 border-transparent'
@@ -128,12 +97,18 @@ export function SessionList({ activeSessionId, onSessionSelect }: SessionListPro
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end" className="w-40">
-                          <DropdownMenuItem onClick={(e) => handleRenameSession(session.id, e)}>
+                          <DropdownMenuItem
+                            onClick={(e) => {
+                              /* TODO: rename */
+                            }}
+                          >
                             <Edit3 className="mr-2 h-3 w-3" />
                             Rename
                           </DropdownMenuItem>
                           <DropdownMenuItem
-                            onClick={(e) => handleDeleteSession(session.id, e)}
+                            onClick={(e) => {
+                              /* TODO: delete */
+                            }}
                             className="text-destructive"
                           >
                             <Trash2 className="mr-2 h-3 w-3" />
@@ -143,18 +118,20 @@ export function SessionList({ activeSessionId, onSessionSelect }: SessionListPro
                       </DropdownMenu>
                     </div>
                     <p className="text-muted-foreground mb-3 line-clamp-2 text-xs leading-relaxed">
-                      {session.lastMessage}
+                      {session.lastMessage ?? 'No messages yet'}
                     </p>
                     <div className="text-muted-foreground flex items-center justify-between text-xs">
                       <div className="flex items-center gap-1">
                         <Clock className="h-3 w-3" />
-                        {session.timestamp}
+                        {session.lastMessageAt
+                          ? new Date(session.lastMessageAt).toLocaleString()
+                          : '—'}
                       </div>
                       <Badge
                         variant="outline"
                         className="bg-primary/5 border-primary/20 text-primary text-xs"
                       >
-                        {session.messageCount} msgs
+                        {session.messageCount ?? 0} msgs
                       </Badge>
                     </div>
                   </div>

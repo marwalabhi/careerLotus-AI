@@ -9,6 +9,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Send, Paperclip, Mic, Square, User, Sparkles } from 'lucide-react';
+import { useChat } from '@/hooks/useChat';
 
 interface Message {
   id: string;
@@ -30,22 +31,19 @@ export function ChatInterface({ sessionId, onSessionCreated }: ChatInterfaceProp
   const [isRecording, setIsRecording] = useState(false);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const { sessionQuery, createSession, sendMessage, sending } = useChat(sessionId);
 
-  // Mock initial messages for demo
+  // Load messages from server
   useEffect(() => {
-    if (sessionId) {
-      // Load messages for existing session
-      setMessages([
-        {
-          id: '1',
-          content:
-            'Thank you for your question about "hi". As your AI career counselor, I\'m here to help guide you through your career journey. Like a lotus that blooms beautifully even in challenging conditions, your career can flourish with the right guidance and support.',
-          sender: 'ai',
-          timestamp: new Date(Date.now() - 1000 * 60 * 5),
-        },
-      ]);
-    } else {
-      // New session - show welcome message
+    if (sessionQuery.data?.messages) {
+      const mapped: Message[] = sessionQuery.data.messages.map((m: any) => ({
+        id: m.id,
+        content: m.content,
+        sender: m.role === 'USER' ? 'user' : 'ai',
+        timestamp: new Date(m.createdAt),
+      }));
+      setMessages(mapped);
+    } else if (!sessionId) {
       setMessages([
         {
           id: 'welcome',
@@ -56,7 +54,7 @@ export function ChatInterface({ sessionId, onSessionCreated }: ChatInterfaceProp
         },
       ]);
     }
-  }, [sessionId]);
+  }, [sessionId, sessionQuery.data]);
 
   const scrollToBottom = () => {
     if (scrollAreaRef.current) {
@@ -73,8 +71,33 @@ export function ChatInterface({ sessionId, onSessionCreated }: ChatInterfaceProp
     scrollToBottom();
   }, [messages]);
 
+  // const handleSendMessage = async () => {
+  //   if (!inputValue.trim() || isLoading || sending) return;
+
+  //   const userMessage: Message = {
+  //     id: Date.now().toString(),
+  //     content: inputValue,
+  //     sender: 'user',
+  //     timestamp: new Date(),
+  //   };
+
+  //   setMessages((prev) => [...prev, userMessage]);
+  //   setInputValue('');
+  //   setIsLoading(true);
+
+  //   try {
+  //     let activeId = sessionId;
+  //     if (!activeId) {
+  //       activeId = await createSession(inputValue.slice(0, 60));
+  //       onSessionCreated(activeId);
+  //     }
+  //     await sendMessage(activeId!, userMessage.content);
+  //   } finally {
+  //     setIsLoading(false);
+  //   }
+  // };
   const handleSendMessage = async () => {
-    if (!inputValue.trim() || isLoading) return;
+    if (!inputValue.trim() || isLoading || sending) return;
 
     const userMessage: Message = {
       id: Date.now().toString(),
@@ -87,26 +110,27 @@ export function ChatInterface({ sessionId, onSessionCreated }: ChatInterfaceProp
     setInputValue('');
     setIsLoading(true);
 
-    // Create new session if this is the first message
-    if (!sessionId) {
-      const newSessionId = `session-${Date.now()}`;
-      onSessionCreated(newSessionId);
-    }
-
-    // Simulate AI response
-    setTimeout(() => {
-      const aiMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        content:
-          'Thank you for sharing that with me! As your AI career counselor, I understand this is an important step in your professional development. Like a lotus that grows through muddy waters to bloom beautifully, your career journey may have challenges, but with the right guidance and persistence, you can achieve remarkable growth. Let me help you navigate this path with personalized advice tailored to your unique situation.',
+    try {
+      let activeId = sessionId;
+      if (!activeId) {
+        activeId = await createSession(inputValue.slice(0, 60));
+        onSessionCreated(activeId);
+      }
+      await sendMessage(activeId!, userMessage.content);
+    } catch (error: any) {
+      console.error('❌ Send message error:', error);
+      // Add error message to chat
+      const errorMessage: Message = {
+        id: Date.now().toString() + '-error',
+        content: `Sorry, I encountered an error: ${error?.message || 'Unknown error'}. Please try again.`,
         sender: 'ai',
         timestamp: new Date(),
       };
-      setMessages((prev) => [...prev, aiMessage]);
+      setMessages((prev) => [...prev, errorMessage]);
+    } finally {
       setIsLoading(false);
-    }, 1500);
+    }
   };
-
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
@@ -152,7 +176,7 @@ export function ChatInterface({ sessionId, onSessionCreated }: ChatInterfaceProp
         <Button
           variant="outline"
           size="sm"
-          className="bg-primary/5 border-primary/20 hover:bg-green-700 hover:text-white"
+          className="bg-primary/5 border-primary/20 cursor-pointer hover:bg-green-700 hover:text-white"
           onClick={() => onSessionCreated(`session-${Date.now()}`)}
         >
           + New Chat
