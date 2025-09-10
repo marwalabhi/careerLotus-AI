@@ -1,19 +1,54 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Plus, Settings, Moon, Sun, Menu, X, User, Clock } from 'lucide-react';
+import { Plus, Settings, Moon, Sun, Menu, X, User, LogOut } from 'lucide-react';
+import * as DropdownMenu from '@radix-ui/react-dropdown-menu';
 import { useTheme } from 'next-themes';
 import { ChatInterface } from './chat-interface';
 import { SessionList } from './session-list';
+import { supabase } from '@/utils/supabase/client';
+import { useRouter } from 'next/navigation';
 
 export function ChatLayout() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
   const { theme, setTheme } = useTheme();
+  const router = useRouter();
+  const [displayName, setDisplayName] = useState<string>('Guest User');
 
   const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
+
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      const guest =
+        typeof window !== 'undefined' && localStorage.getItem('careerlotus_guest') === '1';
+      const { data } = await supabase.auth.getUser();
+      if (!mounted) return;
+      if (guest) {
+        setDisplayName('Guest User');
+      } else if (data.user) {
+        const full = (data.user.user_metadata as any)?.full_name as string | undefined;
+        setDisplayName(full || data.user.email || 'User');
+      } else {
+        setDisplayName('Guest User');
+      }
+    })();
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  const handleLogout = async () => {
+    try {
+      if (typeof window !== 'undefined') localStorage.removeItem('careerlotus_guest');
+      await supabase.auth.signOut();
+    } finally {
+      router.replace('/auth');
+    }
+  };
 
   return (
     <div className="flex h-screen">
@@ -75,7 +110,9 @@ export function ChatLayout() {
                   </AvatarFallback>
                 </Avatar>
                 <div className="min-w-0 flex-1">
-                  <p className="text-sidebar-foreground truncate text-sm font-medium">Guest User</p>
+                  <p className="text-sidebar-foreground truncate text-sm font-medium">
+                    {displayName}
+                  </p>
                   <p className="text-muted-foreground text-xs">Free Plan</p>
                 </div>
               </div>
@@ -88,13 +125,33 @@ export function ChatLayout() {
                 >
                   {theme === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
                 </Button>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-8 w-8 hover:bg-green-100 hover:text-black"
-                >
-                  <Settings className="h-4 w-4" />
-                </Button>
+
+                <DropdownMenu.Root>
+                  <DropdownMenu.Trigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="relative h-8 w-8 hover:bg-green-100 hover:text-black"
+                    >
+                      <Settings className="h-4 w-4" />
+                    </Button>
+                  </DropdownMenu.Trigger>
+                  <DropdownMenu.Portal>
+                    <DropdownMenu.Content
+                      className="z-[100] min-w-[160px] rounded-md bg-white p-1 shadow-md dark:bg-gray-800"
+                      sideOffset={5}
+                      align="end"
+                    >
+                      <DropdownMenu.Item
+                        className="flex cursor-pointer items-center rounded-sm px-2 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-700"
+                        onClick={handleLogout}
+                      >
+                        <LogOut className="mr-2 h-4 w-4" />
+                        Sign Out
+                      </DropdownMenu.Item>
+                    </DropdownMenu.Content>
+                  </DropdownMenu.Portal>
+                </DropdownMenu.Root>
               </div>
             </div>
           </div>

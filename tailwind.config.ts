@@ -1,4 +1,3 @@
-// tailwind.config.ts
 import type { Config } from 'tailwindcss';
 
 const config: Config = {
@@ -11,6 +10,10 @@ const config: Config = {
   ],
   theme: {
     extend: {
+      fontFamily: {
+        sans: ['var(--font-inter)', 'system-ui', 'sans-serif'],
+        heading: ['var(--font-roboto)', 'system-ui', 'sans-serif'],
+      },
       colors: {
         lotus: {
           50: '#fdf4ff',
@@ -18,7 +21,7 @@ const config: Config = {
           200: '#f5d0fe',
           300: '#f0abfc',
           400: '#e879f9',
-          500: '#DB87D4', // Primary lotus pink
+          500: '#DB87D4',
           600: '#c026d3',
           700: '#a21caf',
           800: '#86198f',
@@ -27,10 +30,10 @@ const config: Config = {
         'lotus-light': {
           50: '#fefcff',
           100: '#fdf9ff',
-          200: '#F4BFC7', // Secondary lotus
+          200: '#F4BFC7',
           300: '#f1d5e7',
           400: '#ecbdd9',
-          500: '#E6AAD4', // Accent
+          500: '#E6AAD4',
           600: '#d888c4',
           700: '#c766b4',
           800: '#b544a4',

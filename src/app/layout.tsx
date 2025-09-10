@@ -1,14 +1,11 @@
 import type { Metadata } from 'next';
-import { Inter, Roboto } from 'next/font/google';
 import './globals.css';
 import type React from 'react';
 import { Analytics } from '@vercel/analytics/next';
 import { Suspense } from 'react';
-import './globals.css';
 import { ThemeProvider } from '@/components/theme/theme-provider';
 import { TRPCProvider } from '@/providers/trpc-provider';
-const inter = Inter({ subsets: ['latin'], variable: '--font-inter' });
-const roboto = Roboto({ subsets: ['latin'], variable: '--font-roboto' });
+import { inter, roboto } from '@/app/fonts';
 
 export const metadata: Metadata = {
   title: 'CareerLotus AI - Career Counselling Chat',
@@ -22,7 +19,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`font-sans ${inter.variable} ${roboto.variable} antialiased`}>
+      <body
+        className={`font-sans ${inter.variable} ${roboto.variable} bg-background text-foreground min-h-screen font-sans antialiased`}
+      >
         <TRPCProvider>
           <Suspense fallback={null}>
             <ThemeProvider
@@ -35,7 +34,6 @@ export default function RootLayout({
             </ThemeProvider>
           </Suspense>
         </TRPCProvider>
-
         <Analytics />
       </body>
     </html>
