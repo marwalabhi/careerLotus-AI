@@ -44,31 +44,84 @@ export function useChat(sessionId: string | null) {
     },
   });
 
-  const createSession = useCallback(async (topic: string) => {
-    setCreatingSession(true);
-    try {
-      const res = await createSessionMutation.mutateAsync({ topic });
-      return res.id as string;
-    } finally {
-      setCreatingSession(false);
-    }
-  }, [createSessionMutation]);
+  const renameSessionMutation = trpc.chat.renameSession.useMutation({
+    onSuccess: async (_data, variables) => {
+      await Promise.all([
+        utils.chat.getSession.invalidate({ sessionId: variables.sessionId as unknown as string }),
+        utils.chat.listSessions.invalidate(),
+      ]);
+    },
+  });
 
-  const sendMessage = useCallback(async (id: string, content: string) => {
-    return sendMessageMutation.mutateAsync({ sessionId: id as unknown as any, content });
-  }, [sendMessageMutation]);
+  const deleteSessionMutation = trpc.chat.deleteSession.useMutation({
+    onSuccess: async (_data, variables) => {
+      await utils.chat.listSessions.invalidate();
+    },
+  });
+
+  const clearSessionMutation = trpc.chat.clearSessionMessages.useMutation({
+    onSuccess: async (_data, variables) => {
+      await Promise.all([
+        utils.chat.getSession.invalidate({ sessionId: variables.sessionId as unknown as string }),
+        utils.chat.listSessions.invalidate(),
+      ]);
+    },
+  });
+
+  const createSession = useCallback(
+    async (topic: string) => {
+      setCreatingSession(true);
+      try {
+        const res = await createSessionMutation.mutateAsync({ topic });
+        return res.id as string;
+      } finally {
+        setCreatingSession(false);
+      }
+    },
+    [createSessionMutation]
+  );
+
+  const sendMessage = useCallback(
+    async (id: string, content: string) => {
+      return sendMessageMutation.mutateAsync({ sessionId: id as unknown as any, content });
+    },
+    [sendMessageMutation]
+  );
+
+  const renameSession = useCallback(
+    async (id: string, title: string) => {
+      return renameSessionMutation.mutateAsync({ sessionId: id as unknown as any, title });
+    },
+    [renameSessionMutation]
+  );
+
+  const deleteSession = useCallback(
+    async (id: string) => {
+      return deleteSessionMutation.mutateAsync({ sessionId: id as unknown as any });
+    },
+    [deleteSessionMutation]
+  );
+
+  const clearSession = useCallback(
+    async (id: string) => {
+      return clearSessionMutation.mutateAsync({ sessionId: id as unknown as any });
+    },
+    [clearSessionMutation]
+  );
 
   const sessions: ChatSessionListItem[] | undefined = useMemo(() => {
     if (!list.data) return undefined;
     // list.data may already contain last message metadata if server provides it
     // Keep types permissive
-    return (list.data as any).sessions?.map((s: any) => ({
-      id: s.id,
-      title: s.title,
-      lastMessage: s.lastMessage,
-      lastMessageAt: s.lastMessageAt,
-      messageCount: s.messageCount,
-    })) ?? (list.data as any).sessions;
+    return (
+      (list.data as any).sessions?.map((s: any) => ({
+        id: s.id,
+        title: s.title,
+        lastMessage: s.lastMessage,
+        lastMessageAt: s.lastMessageAt,
+        messageCount: s.messageCount,
+      })) ?? (list.data as any).sessions
+    );
   }, [list.data]);
 
   return {
@@ -82,7 +135,9 @@ export function useChat(sessionId: string | null) {
     creatingSession,
     sendMessage,
     sending: sendMessageMutation.isLoading,
+    renameSession,
+    deleting: deleteSessionMutation.isLoading,
+    deleteSession,
+    clearSession,
   };
 }
-
-

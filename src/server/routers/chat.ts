@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import { router, publicProcedure } from '../trpc';
 import { prisma } from '@/lib/prisma';
-import { openai } from '@/lib/openai';
+import { genAI, makeGeminiRequest, convertMessagesToGeminiFormat } from '@/lib/gemini';
 
 const SYSTEM_PROMPT = `You are CareerLotus AI, an expert career counselor.
 Provide practical, empathetic guidance with clear next steps,
@@ -56,90 +56,93 @@ export const chatRouter = router({
     });
   }),
 
+  renameSession: publicProcedure
+    .input(z.object({ sessionId: z.uuid(), title: z.string().min(1).max(120) }))
+    .mutation(async ({ input }) => {
+      const updated = await prisma.chatSession.update({
+        where: { id: input.sessionId },
+        data: { title: input.title },
+      });
+      return updated;
+    }),
+
+  deleteSession: publicProcedure
+    .input(z.object({ sessionId: z.uuid() }))
+    .mutation(async ({ input }) => {
+      await prisma.chatSession.delete({ where: { id: input.sessionId } });
+      return { ok: true };
+    }),
+
+  clearSessionMessages: publicProcedure
+    .input(z.object({ sessionId: z.uuid() }))
+    .mutation(async ({ input }) => {
+      await prisma.message.deleteMany({ where: { chatSessionId: input.sessionId } });
+      return { ok: true };
+    }),
+
   sendMessage: publicProcedure
-  .input(z.object({ sessionId: z.uuid(), content: z.string().min(1) }))
-  .mutation(async ({ input }) => {
-    try {
-      const userMsg = await prisma.message.create({
-        data: { chatSessionId: input.sessionId, role: 'USER', content: input.content },
-      });
-
-      const history = await prisma.message.findMany({
-        where: { chatSessionId: input.sessionId },
-        orderBy: { createdAt: 'asc' },
-        take: 20,
-      });
-
-      const messages = [
-        { role: 'system', content: SYSTEM_PROMPT },
-        ...history.map((m) => ({
-          role: m.role === 'USER' ? 'user' : ('assistant' as const),
-          content: m.content,
-        })),
-      ];
-
-      let aiText = 'Sorry, I encountered an error. Please try again.';
-
+    .input(z.object({ sessionId: z.uuid(), content: z.string().min(1) }))
+    .mutation(async ({ input }) => {
       try {
-        console.log('🤖 Calling OpenAI...');
-        const completion = await openai.chat.completions.create({
-          model: 'gpt-4o-mini',
-          temperature: 0.4,
-          messages,
+        const userMsg = await prisma.message.create({
+          data: { chatSessionId: input.sessionId, role: 'USER', content: input.content },
         });
 
-        aiText = completion.choices[0]?.message?.content?.trim() || 'I received an empty response. Please try again.';
-        console.log('✅ OpenAI response received');
+        const history = await prisma.message.findMany({
+          where: { chatSessionId: input.sessionId },
+          orderBy: { createdAt: 'asc' },
+          take: 20,
+        });
+
+        const messages = [
+          { role: 'system', content: SYSTEM_PROMPT },
+          ...history.map((m) => ({
+            role: m.role === 'USER' ? 'user' : ('assistant' as const),
+            content: m.content,
+          })),
+        ];
+
+        let aiText: string;
+
+        try {
+          console.log('🤖 Calling Gemini...');
+
+          // Convert messages to Gemini format
+          const { messages: geminiMessages, systemInstruction } =
+            convertMessagesToGeminiFormat(messages);
+
+          // Get the Gemini model
+          const model = genAI.getGenerativeModel({
+            model: 'gemini-1.5-flash',
+            systemInstruction: systemInstruction,
+          });
+
+          // Create chat session with history
+          const chat = model.startChat({
+            history: geminiMessages.slice(0, -1), // All messages except the last one
+          });
+
+          // Send the latest message
+          const result = await makeGeminiRequest(async () => {
+            return await chat.sendMessage(geminiMessages[geminiMessages.length - 1].parts[0].text);
+          });
+
+          const response = result.response;
+          aiText = response.text().trim() || 'I received an empty response. Please try again.';
+          console.log('✅ Gemini response received');
+        } catch (error: any) {
+          console.error('❌ Gemini Error:', error?.message || error);
+          aiText = `I'm having trouble connecting to my AI service. Error: ${error?.message || 'Unknown error'}. Please check your API key and try again.`;
+        }
+
+        const aiMsg = await prisma.message.create({
+          data: { chatSessionId: input.sessionId, role: 'ASSISTANT', content: aiText },
+        });
+
+        return { userMsg, aiMsg };
       } catch (error: any) {
-        console.error('❌ OpenAI Error:', error?.message || error);
-        aiText = `I'm having trouble connecting to my AI service. Error: ${error?.message || 'Unknown error'}. Please check your API key and try again.`;
+        console.error('❌ SendMessage error:', error);
+        throw new Error(`Failed to send message: ${error?.message || 'Unknown error'}`);
       }
-
-      const aiMsg = await prisma.message.create({
-        data: { chatSessionId: input.sessionId, role: 'ASSISTANT', content: aiText },
-      });
-
-      return { userMsg, aiMsg };
-    } catch (error: any) {
-      console.error('❌ SendMessage error:', error);
-      throw new Error(`Failed to send message: ${error?.message || 'Unknown error'}`);
-    }
-  }),
-
+    }),
 });
-//   sendMessage: publicProcedure
-//     .input(z.object({ sessionId: z.uuid(), content: z.string().min(1) }))
-//     .mutation(async ({ input }) => {
-//       const userMsg = await prisma.message.create({
-//         data: { chatSessionId: input.sessionId, role: 'USER', content: input.content },
-//       });
-
-//       const history = await prisma.message.findMany({
-//         where: { chatSessionId: input.sessionId },
-//         orderBy: { createdAt: 'asc' },
-//         take: 20, // last N messages for context
-//       });
-
-//       const messages = [
-//         { role: 'system', content: SYSTEM_PROMPT },
-//         ...history.map((m) => ({
-//           role: m.role === 'USER' ? 'user' : ('assistant' as const),
-//           content: m.content,
-//         })),
-//       ];
-
-//       const completion = await openai.chat.completions.create({
-//         model: 'gpt-4o-mini',
-//         temperature: 0.4,
-//         messages,
-//       });
-
-//       const aiText = completion.choices[0]?.message?.content?.trim() || '...';
-
-//       const aiMsg = await prisma.message.create({
-//         data: { chatSessionId: input.sessionId, role: 'ASSISTANT', content: aiText },
-//       });
-
-//       return { userMsg, aiMsg };
-//     }),
-// });

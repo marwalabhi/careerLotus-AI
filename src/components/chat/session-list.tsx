@@ -1,7 +1,7 @@
 'use client';
 
 import type React from 'react';
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
@@ -22,57 +22,90 @@ interface SessionListProps {
 }
 
 export function SessionList({ activeSessionId, onSessionSelect }: SessionListProps) {
-  const { sessions: rawSessions, listSessionsQuery } = useChat(null);
+  const { sessions: rawSessions, listSessionsQuery, deleteSession, renameSession } = useChat(null);
   const sessions = useMemo(() => rawSessions ?? [], [rawSessions]);
 
-  const handleDeleteSession = (sessionId: string, e: React.MouseEvent) => {
+  const [renameOpen, setRenameOpen] = useState(false);
+  const [renameId, setRenameId] = useState<string | null>(null);
+  const [renameTitle, setRenameTitle] = useState('');
+  const [saving, setSaving] = useState(false);
+
+  const handleDeleteSession = async (sessionId: string, e: React.MouseEvent) => {
     e.stopPropagation();
-    // Implement delete functionality
-    console.log('Delete session:', sessionId);
+    try {
+      await deleteSession(sessionId);
+    } catch (err) {
+      console.error('Failed to delete session', err);
+    }
   };
 
-  const handleRenameSession = (sessionId: string, e: React.MouseEvent) => {
+  const handleRenameSession = (sessionId: string, title: string, e: React.MouseEvent) => {
     e.stopPropagation();
-    // Implement rename functionality
-    console.log('Rename session:', sessionId);
+    setRenameId(sessionId);
+    setRenameTitle(title ?? '');
+    setRenameOpen(true);
   };
 
-  return (
-    <div className="space-y-3">
-      <div className="mb-4 flex items-center justify-between">
-        <h2 className="text-sidebar-foreground flex items-center gap-2 text-sm font-semibold">
-          🪷 Chat Sessions
-        </h2>
-        <Badge variant="secondary" className="bg-primary/10 text-primary border-primary/20 text-xs">
-          {sessions?.length ?? 0}
-        </Badge>
+  const submitRename = async () => {
+    if (!renameId || !renameTitle.trim()) {
+      setRenameOpen(false);
+      return;
+    }
+    try {
+      setSaving(true);
+      await renameSession(renameId, renameTitle.trim());
+      setRenameOpen(false);
+    } catch (err) {
+      console.error('Failed to rename session', err);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  let body: React.ReactNode;
+
+  if (listSessionsQuery.isLoading) {
+    body = (
+      <div className="px-4 py-8 text-center">
+        <p className="text-muted-foreground text-sm">Loading sessions…</p>
       </div>
+    );
+  } else if (sessions.length === 0) {
+    // Updated empty state with lotus theme
+    body = (
+      <div className="px-4 py-8 text-center">
+        <div className="bg-primary/10 mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full">
+          <span className="text-2xl">🪷</span>
+        </div>
+        <p className="text-muted-foreground mb-2 text-sm">No chat sessions yet</p>
+        <p className="text-muted-foreground text-xs">Start your first career conversation!</p>
+      </div>
+    );
+  } else {
+    body = (
+      <ScrollArea className="h-[calc(100vh-280px)]">
+        <div className="space-y-2">
+          {sessions.map((session: any) => {
+            const isActive = activeSessionId === session.id;
+            const cardStateClass = isActive
+              ? 'bg-primary/10 border-primary/20 shadow-sm'
+              : 'hover:bg-sidebar-accent/30 hover:border-border/50 border-transparent';
 
-      {listSessionsQuery.isLoading ? (
-        <div className="px-4 py-8 text-center">
-          <p className="text-muted-foreground text-sm">Loading sessions…</p>
-        </div>
-      ) : sessions.length === 0 ? (
-        // Updated empty state with lotus theme
-        <div className="px-4 py-8 text-center">
-          <div className="bg-primary/10 mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full">
-            <span className="text-2xl">🪷</span>
-          </div>
-          <p className="text-muted-foreground mb-2 text-sm">No chat sessions yet</p>
-          <p className="text-muted-foreground text-xs">Start your first career conversation!</p>
-        </div>
-      ) : (
-        <ScrollArea className="h-[calc(100vh-280px)]">
-          <div className="space-y-2">
-            {sessions.map((session: any) => (
+            const handleKeyDown: React.KeyboardEventHandler<HTMLDivElement> = (ev) => {
+              if (ev.key === 'Enter' || ev.key === ' ') {
+                ev.preventDefault();
+                onSessionSelect(session.id);
+              }
+            };
+
+            return (
               <div
                 key={session.id}
-                className={`group relative w-full cursor-pointer rounded-xl border p-4 transition-all duration-200 sm:w-[230px] md:w-[275px] ${
-                  activeSessionId === session.id
-                    ? 'bg-primary/10 border-primary/20 shadow-sm'
-                    : 'hover:bg-sidebar-accent/30 hover:border-border/50 border-transparent'
-                } `}
+                role="button"
+                tabIndex={0}
+                className={`group relative w-full cursor-pointer rounded-xl border p-4 transition-all duration-200 sm:w-[230px] md:w-[275px] ${cardStateClass} `}
                 onClick={() => onSessionSelect(session.id)}
+                onKeyDown={handleKeyDown}
               >
                 <div className="flex items-start gap-3">
                   <div className="mt-1 flex-shrink-0">
@@ -98,18 +131,14 @@ export function SessionList({ activeSessionId, onSessionSelect }: SessionListPro
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end" className="w-40">
                           <DropdownMenuItem
-                            onClick={(e) => {
-                              /* TODO: rename */
-                            }}
+                            onClick={(e) => handleRenameSession(session.id, session.title, e)}
                           >
                             <Edit3 className="mr-2 h-3 w-3" />
                             Rename
                           </DropdownMenuItem>
                           <DropdownMenuItem
-                            onClick={(e) => {
-                              /* TODO: delete */
-                            }}
-                            className="text-destructive"
+                            onClick={(e) => handleDeleteSession(session.id, e)}
+                            className="text-destructive hover:bg-destructive/10 focus:bg-destructive/10 focus:!text-destructive data-[highlighted]:!text-destructive"
                           >
                             <Trash2 className="mr-2 h-3 w-3" />
                             Delete
@@ -137,9 +166,53 @@ export function SessionList({ activeSessionId, onSessionSelect }: SessionListPro
                   </div>
                 </div>
               </div>
-            ))}
+            );
+          })}
+        </div>
+      </ScrollArea>
+    );
+  }
+
+  return (
+    <div className="space-y-3">
+      <div className="mb-4 flex items-center justify-between">
+        <h2 className="text-sidebar-foreground flex items-center gap-2 text-sm font-semibold">
+          🪷 Chat Sessions
+        </h2>
+        <Badge variant="secondary" className="bg-primary/10 text-primary border-primary/20 text-xs">
+          {sessions?.length ?? 0}
+        </Badge>
+      </div>
+
+      {body}
+
+      {renameOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          <div className="absolute inset-0 bg-black/50" onClick={() => setRenameOpen(false)} />
+          <div className="bg-background relative z-10 w-[90vw] max-w-md rounded-2xl border p-5 shadow-xl">
+            <h3 className="mb-3 text-base font-semibold">Rename Chat</h3>
+            <input
+              autoFocus
+              type="text"
+              value={renameTitle}
+              onChange={(e) => setRenameTitle(e.target.value)}
+              className="bg-card text-card-foreground focus-visible:ring-primary block w-full rounded-md border px-3 py-2 text-sm outline-none focus-visible:ring-2"
+              placeholder="Enter a new session title"
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') submitRename();
+                if (e.key === 'Escape') setRenameOpen(false);
+              }}
+            />
+            <div className="mt-4 flex justify-end gap-2">
+              <Button variant="outline" onClick={() => setRenameOpen(false)}>
+                Cancel
+              </Button>
+              <Button onClick={submitRename} disabled={saving || !renameTitle.trim()}>
+                {saving ? 'Saving…' : 'Save'}
+              </Button>
+            </div>
           </div>
-        </ScrollArea>
+        </div>
       )}
     </div>
   );

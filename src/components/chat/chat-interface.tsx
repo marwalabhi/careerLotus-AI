@@ -10,6 +10,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Send, Paperclip, Mic, Square, User, Sparkles } from 'lucide-react';
 import { useChat } from '@/hooks/useChat';
+import { Markdown } from '@/components/Markdown';
 
 interface Message {
   id: string;
@@ -31,7 +32,7 @@ export function ChatInterface({ sessionId, onSessionCreated }: ChatInterfaceProp
   const [isRecording, setIsRecording] = useState(false);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
-  const { sessionQuery, createSession, sendMessage, sending } = useChat(sessionId);
+  const { sessionQuery, createSession, sendMessage, sending, clearSession } = useChat(sessionId);
 
   // Load messages from server
   useEffect(() => {
@@ -176,10 +177,19 @@ export function ChatInterface({ sessionId, onSessionCreated }: ChatInterfaceProp
         <Button
           variant="outline"
           size="sm"
-          className="bg-primary/5 border-primary/20 cursor-pointer hover:bg-green-700 hover:text-white"
-          onClick={() => onSessionCreated(`session-${Date.now()}`)}
+          className="bg-primary/5 border-primary/20 hover:bg-primary/20 dark:hover:bg-primary/30 hover:text-foreground cursor-pointer transition-colors"
+          onClick={async () => {
+            try {
+              if (sessionId) {
+                await clearSession(sessionId);
+              }
+            } finally {
+              setMessages([]);
+              setInputValue('');
+            }
+          }}
         >
-          + New Chat
+          Reset Chat
         </Button>
       </div>
 
@@ -212,7 +222,13 @@ export function ChatInterface({ sessionId, onSessionCreated }: ChatInterfaceProp
                           : 'bg-card border-border/50 text-card-foreground border'
                       } `}
                     >
-                      {message.content}
+                      {message.sender === 'user' ? (
+                        <div>{message.content}</div>
+                      ) : (
+                        <Markdown className="prose prose-sm dark:prose-invert max-w-none">
+                          {message.content}
+                        </Markdown>
+                      )}
                     </div>
                     <div className="flex items-center gap-2">
                       <span className="text-muted-foreground px-2 text-xs">
