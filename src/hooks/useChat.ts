@@ -137,9 +137,9 @@ export function useChat(sessionId: string | null) {
     createSession,
     creatingSession,
     sendMessage,
-    sending: sendMessageMutation.isLoading,
+    sending: sendMessageMutation.status === 'pending',
     renameSession,
-    deleting: deleteSessionMutation.isLoading,
+    deleting: deleteSessionMutation.status === 'pending',
     deleteSession,
     clearSession,
   };

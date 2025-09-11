@@ -14,7 +14,7 @@ export default function HistoryPage() {
   return (
     <div>
       {sessions.map((s) => (
-        <div key={s.id}>{s.topic}</div>
+        <div key={s.id}>{s.title}</div>
       ))}
       {hasNextPage && <button onClick={() => fetchNextPage()}>Load more</button>}
     </div>
