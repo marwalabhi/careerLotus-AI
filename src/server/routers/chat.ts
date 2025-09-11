@@ -42,7 +42,7 @@ export const chatRouter = router({
       const withMeta = sessions.map((s) => ({
         id: s.id,
         title: s.title,
-        messageCount: (s as any)._count?.messages ?? undefined,
+        messageCount: s._count?.messages ?? undefined,
         lastMessage: s.messages?.[0]?.content,
         lastMessageAt: s.messages?.[0]?.createdAt,
       }));
@@ -130,9 +130,11 @@ export const chatRouter = router({
           const response = result.response;
           aiText = response.text().trim() || 'I received an empty response. Please try again.';
           console.log('✅ Gemini response received');
-        } catch (error: any) {
-          console.error('❌ Gemini Error:', error?.message || error);
-          aiText = `I'm having trouble connecting to my AI service. Error: ${error?.message || 'Unknown error'}. Please check your API key and try again.`;
+        } catch (error: unknown) {
+          let msg = 'Unknown error';
+          if (error instanceof Error) msg = error.message;
+          console.error('❌ Gemini Error:', msg);
+          aiText = `I'm having trouble connecting to my AI service. Error: ${msg}. Please check your API key and try again.`;
         }
 
         const aiMsg = await prisma.message.create({
@@ -140,9 +142,11 @@ export const chatRouter = router({
         });
 
         return { userMsg, aiMsg };
-      } catch (error: any) {
-        console.error('❌ SendMessage error:', error);
-        throw new Error(`Failed to send message: ${error?.message || 'Unknown error'}`);
+      } catch (error: unknown) {
+        let msg = 'Unknown error';
+        if (error instanceof Error) msg = error.message;
+        console.error('❌ SendMessage error:', msg);
+        throw new Error(`Failed to send message: ${msg}`);
       }
     }),
 });

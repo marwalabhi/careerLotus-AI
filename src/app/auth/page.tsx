@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
 import { supabase } from '@/utils/supabase/client';
+import Image from 'next/image';
 
 export default function AuthPage() {
   const router = useRouter();
@@ -56,7 +57,7 @@ export default function AuthPage() {
               <div className="flex h-20 w-20 items-center justify-center rounded-xl border-2 border-pink-300 shadow-[0_0_15px_rgba(236,72,153,0.3)] transition-all duration-300 hover:shadow-[0_0_20px_rgba(236,72,153,0.5)]">
                 <span className="text-xl">
                   <div className="flex justify-center">
-                    <img
+                    <Image
                       alt="careerlotus_logo"
                       src="/logo1.png"
                       className="rounded-2xl object-cover"

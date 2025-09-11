@@ -9,6 +9,12 @@ type MarkdownProps = {
   className?: string;
 };
 
+type CodeRendererProps = {
+  inline?: boolean;
+  className?: string;
+  children?: React.ReactNode;
+} & React.HTMLAttributes<HTMLElement>;
+
 export function Markdown({ children, className }: MarkdownProps) {
   return (
     <div className={className}>
@@ -34,7 +40,7 @@ export function Markdown({ children, className }: MarkdownProps) {
               {...props}
             />
           ),
-          code: ({ inline, className: cn, children, ...props }: any) => (
+          code: ({ inline, className: cn, children, ...props }: CodeRendererProps) => (
             <code
               className={
                 (cn || '') +

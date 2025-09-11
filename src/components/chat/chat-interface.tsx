@@ -9,7 +9,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Send, Paperclip, Mic, Square, User, Sparkles } from 'lucide-react';
-import { useChat } from '@/hooks/useChat';
+import { ChatMessage, useChat } from '@/hooks/useChat';
 import { Markdown } from '@/components/Markdown';
 
 interface Message {
@@ -37,7 +37,7 @@ export function ChatInterface({ sessionId, onSessionCreated }: ChatInterfaceProp
   // Load messages from server
   useEffect(() => {
     if (sessionQuery.data?.messages) {
-      const mapped: Message[] = sessionQuery.data.messages.map((m: any) => ({
+      const mapped: Message[] = sessionQuery.data.messages.map((m: ChatMessage) => ({
         id: m.id,
         content: m.content,
         sender: m.role === 'USER' ? 'user' : 'ai',
@@ -93,12 +93,16 @@ export function ChatInterface({ sessionId, onSessionCreated }: ChatInterfaceProp
         onSessionCreated(activeId);
       }
       await sendMessage(activeId!, userMessage.content);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('❌ Send message error:', error);
+      let errorText = 'Unknown error';
+      if (error instanceof Error) {
+        errorText = error.message;
+      }
       // Add error message to chat
       const errorMessage: Message = {
         id: Date.now().toString() + '-error',
-        content: `Sorry, I encountered an error: ${error?.message || 'Unknown error'}. Please try again.`,
+        content: `Sorry, I encountered an error: ${errorText}. Please try again.`,
         sender: 'ai',
         timestamp: new Date(),
       };
