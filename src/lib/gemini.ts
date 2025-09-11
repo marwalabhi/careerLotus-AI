@@ -19,6 +19,9 @@ export const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve
 
 // Wrapper function with rate limiting
 export async function makeGeminiRequest<T>(requestFn: () => Promise<T>, retries = 3): Promise<T> {
+  if (!process.env.GEMINI_API_KEY) {
+    throw new Error('Gemini API key is not configured');
+  }
   try {
     return await requestFn();
   } catch (error: unknown) {
