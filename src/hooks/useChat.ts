@@ -16,6 +16,10 @@ export type ChatSessionListItem = {
   messageCount?: number;
 };
 
+interface ListSessionsResponse {
+  sessions: ChatSessionListItem[];
+}
+
 export function useChat(sessionId: string | null) {
   const utils = trpc.useUtils();
 
@@ -83,28 +87,28 @@ export function useChat(sessionId: string | null) {
 
   const sendMessage = useCallback(
     async (id: string, content: string) => {
-      return sendMessageMutation.mutateAsync({ sessionId: id as unknown as any, content });
+      return sendMessageMutation.mutateAsync({ sessionId: id as unknown as string, content });
     },
     [sendMessageMutation]
   );
 
   const renameSession = useCallback(
     async (id: string, title: string) => {
-      return renameSessionMutation.mutateAsync({ sessionId: id as unknown as any, title });
+      return renameSessionMutation.mutateAsync({ sessionId: id as unknown as string, title });
     },
     [renameSessionMutation]
   );
 
   const deleteSession = useCallback(
     async (id: string) => {
-      return deleteSessionMutation.mutateAsync({ sessionId: id as unknown as any });
+      return deleteSessionMutation.mutateAsync({ sessionId: id as unknown as string });
     },
     [deleteSessionMutation]
   );
 
   const clearSession = useCallback(
     async (id: string) => {
-      return clearSessionMutation.mutateAsync({ sessionId: id as unknown as any });
+      return clearSessionMutation.mutateAsync({ sessionId: id as unknown as string });
     },
     [clearSessionMutation]
   );
@@ -113,15 +117,14 @@ export function useChat(sessionId: string | null) {
     if (!list.data) return undefined;
     // list.data may already contain last message metadata if server provides it
     // Keep types permissive
-    return (
-      (list.data as any).sessions?.map((s: any) => ({
-        id: s.id,
-        title: s.title,
-        lastMessage: s.lastMessage,
-        lastMessageAt: s.lastMessageAt,
-        messageCount: s.messageCount,
-      })) ?? (list.data as any).sessions
-    );
+    const data = list.data as ListSessionsResponse;
+    return data.sessions?.map((s) => ({
+      id: s.id,
+      title: s.title,
+      lastMessage: s.lastMessage,
+      lastMessageAt: s.lastMessageAt,
+      messageCount: s.messageCount,
+    }));
   }, [list.data]);
 
   return {

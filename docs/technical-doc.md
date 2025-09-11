@@ -62,5 +62,3 @@
 - Proper indexing and relational constraints in DB
 
 ---
-
-**Document generated for technical assessment submission.**

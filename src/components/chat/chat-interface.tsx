@@ -72,31 +72,6 @@ export function ChatInterface({ sessionId, onSessionCreated }: ChatInterfaceProp
     scrollToBottom();
   }, [messages]);
 
-  // const handleSendMessage = async () => {
-  //   if (!inputValue.trim() || isLoading || sending) return;
-
-  //   const userMessage: Message = {
-  //     id: Date.now().toString(),
-  //     content: inputValue,
-  //     sender: 'user',
-  //     timestamp: new Date(),
-  //   };
-
-  //   setMessages((prev) => [...prev, userMessage]);
-  //   setInputValue('');
-  //   setIsLoading(true);
-
-  //   try {
-  //     let activeId = sessionId;
-  //     if (!activeId) {
-  //       activeId = await createSession(inputValue.slice(0, 60));
-  //       onSessionCreated(activeId);
-  //     }
-  //     await sendMessage(activeId!, userMessage.content);
-  //   } finally {
-  //     setIsLoading(false);
-  //   }
-  // };
   const handleSendMessage = async () => {
     if (!inputValue.trim() || isLoading || sending) return;
 
@@ -151,7 +126,7 @@ export function ChatInterface({ sessionId, onSessionCreated }: ChatInterfaceProp
   return (
     <div className="from-background to-background/95 flex h-full flex-col overflow-hidden bg-gradient-to-b">
       {/* Chat Header */}
-      <div className="border-border bg-card/50 flex flex-shrink-0 items-center justify-between border-b p-6 backdrop-blur-sm">
+      <div className="bg-card/50 flex flex-shrink-0 items-center justify-between rounded-b-xl border-b border-gray-100 p-6 shadow-[0_2px_10px_rgba(0,0,0,0.08)]">
         <div className="flex items-center gap-4">
           <Avatar className="ring-primary/20 h-10 w-10 shadow-sm ring-2">
             <AvatarImage src="/ai-counselor-avatar.jpg" />
@@ -282,7 +257,7 @@ export function ChatInterface({ sessionId, onSessionCreated }: ChatInterfaceProp
       </div>
 
       {/* Input Area */}
-      <div className="border-border bg-card/30 flex-shrink-0 border-t backdrop-blur-sm">
+      <div className="border-border bg-card/30 flex-shrink-0 backdrop-blur-sm">
         <div className="mx-auto max-w-4xl">
           {messages.length <= 1 && (
             <div className="my-9 space-y-3">
@@ -321,7 +296,7 @@ export function ChatInterface({ sessionId, onSessionCreated }: ChatInterfaceProp
             </div>
           )}
 
-          <div className="bg-card border-border/50 rounded-2xl border p-4 shadow-lg">
+          <div className="bg-card border-border/50 rounded-2xl border p-4 shadow-[0_0_15px_rgba(34,197,94,0.2)] transition-all duration-300 hover:shadow-[0_0_20px_rgba(34,197,94,0.4)]">
             <div className="flex items-end gap-3">
               <Button
                 variant="ghost"
@@ -338,7 +313,7 @@ export function ChatInterface({ sessionId, onSessionCreated }: ChatInterfaceProp
                   onChange={(e) => setInputValue(e.target.value)}
                   onKeyDown={handleKeyPress}
                   placeholder="Ask about your career path..."
-                  className="placeholder:text-muted-foreground min-h-[44px] border-0 bg-transparent px-0 text-base focus-visible:ring-0 focus-visible:ring-offset-0"
+                  className="placeholder:text-muted-foreground min-h-[44px] border-none bg-transparent px-3 text-[17px] font-[400] shadow-none focus-visible:ring-0 focus-visible:ring-offset-0"
                   disabled={isLoading}
                 />
               </div>

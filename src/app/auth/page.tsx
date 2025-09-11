@@ -33,8 +33,8 @@ export default function AuthPage() {
         if (err) throw err;
       }
       router.push('/');
-    } catch (err: any) {
-      setError(err?.message || 'Authentication failed');
+    } catch (err: unknown) {
+      if (err instanceof Error) setError(err?.message || 'Authentication failed');
     } finally {
       setLoading(false);
     }
@@ -70,7 +70,7 @@ export default function AuthPage() {
               </div>
             </div>
 
-            <h2 className="mb-2 font-sans text-2xl font-bold">Welcome to CareerLotus</h2>
+            <h2 className="mb-2 font-sans text-2xl font-bold">Welcome to CareerLotus AI</h2>
 
             <p className="text-muted-foreground">
               Personalized guidance for your next career move.
@@ -81,8 +81,8 @@ export default function AuthPage() {
             </div>
             <ul className="text-muted-foreground/90 mt-6 space-y-2 text-sm">
               <li className="text-sm font-semibold">
-                <span className="text-lg text-pink-500">Smart</span>, empathetic advice powered by
-                AI
+                <span className="text-lg text-pink-500">Discover</span> new career opportunities
+                tailored for you
               </li>
               <div className="mt-4 flex justify-start">
                 <div className="relative">
@@ -91,8 +91,8 @@ export default function AuthPage() {
                 </div>
               </div>
               <li className="text-sm font-semibold">
-                <span className="text-lg text-blue-400">Skill</span> plans and resources tailored to
-                you
+                <span className="text-lg text-blue-400">Grow</span> your skills with expert-guided
+                plans
               </li>
               <div className="mt-4 flex justify-start">
                 <div className="relative">
@@ -101,7 +101,8 @@ export default function AuthPage() {
                 </div>
               </div>
               <li className="text-sm font-semibold">
-                <span className="text-lg text-green-400">Save</span> your chats and continue anytime
+                <span className="text-lg text-green-400">Achieve</span> your goals by saving your
+                progress easily
               </li>
               <div className="mt-4 flex justify-start">
                 <div className="relative">

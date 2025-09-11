@@ -14,7 +14,13 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { useChat } from '@/hooks/useChat';
 
-interface ChatSession {}
+interface ChatSession {
+  id: string;
+  title: string;
+  lastMessage?: string;
+  lastMessageAt?: string | Date;
+  messageCount?: number;
+}
 
 interface SessionListProps {
   activeSessionId: string | null;
@@ -85,7 +91,7 @@ export function SessionList({ activeSessionId, onSessionSelect }: SessionListPro
     body = (
       <ScrollArea className="h-[calc(100vh-280px)]">
         <div className="space-y-2">
-          {sessions.map((session: any) => {
+          {sessions.map((session: ChatSession) => {
             const isActive = activeSessionId === session.id;
             const cardStateClass = isActive
               ? 'bg-primary/10 border-primary/20 shadow-sm'
@@ -103,7 +109,7 @@ export function SessionList({ activeSessionId, onSessionSelect }: SessionListPro
                 key={session.id}
                 role="button"
                 tabIndex={0}
-                className={`group relative w-full cursor-pointer rounded-xl border p-4 transition-all duration-200 sm:w-[230px] md:w-[275px] ${cardStateClass} `}
+                className={`group relative w-full cursor-pointer rounded-xl border p-4 transition-all duration-200 sm:w-[230px] md:w-[295px] ${cardStateClass} `}
                 onClick={() => onSessionSelect(session.id)}
                 onKeyDown={handleKeyDown}
               >

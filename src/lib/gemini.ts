@@ -8,7 +8,12 @@ if (!process.env.GEMINI_API_KEY) {
   console.error('❌ GEMINI_API_KEY is missing from environment variables');
   throw new Error('Gemini API key is not configured');
 }
-
+interface GeminiApiError extends Error {
+  status?: number;
+  statusText?: string;
+  message: string;
+  retries: number;
+}
 // Rate limiting helper
 export const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -16,18 +21,21 @@ export const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve
 export async function makeGeminiRequest<T>(requestFn: () => Promise<T>, retries = 3): Promise<T> {
   try {
     return await requestFn();
-  } catch (error: any) {
-    if (error.status === 429 && retries > 0) {
-      // Exponential backoff for rate limiting
-      const delayMs = Math.pow(2, 3 - retries) * 1000; // 1s, 2s, 4s
-      console.log(`Rate limited. Retrying in ${delayMs}ms...`);
-      await delay(delayMs);
-      return makeGeminiRequest(requestFn, retries - 1);
+  } catch (error: unknown) {
+    if (error instanceof Error) {
+      console.log('erro obj', error);
+
+      if ((error as GeminiApiError).status === 429 && retries > 0) {
+        // Exponential backoff for rate limiting
+        const delayMs = Math.pow(2, 3 - retries) * 1000; // 1s, 2s, 4s
+        console.log(`Rate limited. Retrying in ${delayMs}ms...`);
+        await delay(delayMs);
+        return makeGeminiRequest(requestFn, retries - 1);
+      }
     }
     throw error;
   }
 }
-
 // Helper function to convert OpenAI-style messages to Gemini format
 export function convertMessagesToGeminiFormat(messages: Array<{ role: string; content: string }>) {
   // Filter out system messages and convert to Gemini format

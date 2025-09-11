@@ -11,6 +11,9 @@ import { SessionList } from './session-list';
 import { supabase } from '@/utils/supabase/client';
 import { useRouter } from 'next/navigation';
 
+interface UserMetadata {
+  full_name?: string;
+}
 export function ChatLayout() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
@@ -30,7 +33,8 @@ export function ChatLayout() {
       if (guest) {
         setDisplayName('Guest User');
       } else if (data.user) {
-        const full = (data.user.user_metadata as any)?.full_name as string | undefined;
+        const userMetaData = data.user.user_metadata as UserMetadata | undefined;
+        const full = userMetaData?.full_name;
         setDisplayName(full || data.user.email || 'User');
       } else {
         setDisplayName('Guest User');
@@ -59,11 +63,11 @@ export function ChatLayout() {
 
       {/* Sidebar */}
       <div
-        className={`bg-sidebar border-sidebar-border fixed inset-y-0 left-0 z-50 flex w-80 transform flex-col border-r transition-transform duration-200 ease-in-out lg:static ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'} `}
+        className={`bg-sidebar border-sidebar-border fixed inset-y-0 left-0 z-50 flex w-85 transform flex-col transition-transform duration-200 ease-in-out lg:static ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'} `}
       >
         <div className="flex h-full flex-col">
           {/* Header */}
-          <div className="border-sidebar-border bg-sidebar/50 flex items-center justify-between border-b p-6">
+          <div className="bg-sidebar/50 flex items-center justify-between rounded-b-xl border-b border-green-50 p-7 shadow-[0_2px_15px_rgba(34,197,94,0.1)]">
             <div className="flex items-center gap-3">
               <div className="bg-primary flex h-10 w-10 items-center justify-center rounded-lg shadow-sm">
                 <span className="text-lg">🪷</span>
@@ -100,7 +104,7 @@ export function ChatLayout() {
           </div>
 
           {/* Footer */}
-          <div className="border-sidebar-border border-t p-4">
+          <div className="border-t border-gray-50 p-4 shadow-[0_-3px_15px_rgba(0,0,0,0.05)]">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <Avatar className="h-9 w-9">
